@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Tetris
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+        <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+        <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+        <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+        <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+
+    </head>
+    <body>
+     <ons-page>
+      <div data-role="page" id="page1">
+         <div class="ui-content" id="main" role="main">
+            <canvas id="Canvas" width="800" height="640" style="border: 1px solid;">
+                <script>
+
+                document.addEventListener('keydown', function(event) {
+                  if(event.key == "ArrowLeft") {
+                    piece.moveLeft();
+                  }
+                  if(event.key == "ArrowRight") {
+                    piece.moveRight();
+                  }
+                  if(event.keyCode == 88) {
+                    piece.rotate();
+                  }
+                  if(event.key == "ArrowDown") {
+                    piece.moveDown();
+                  }
+                });
+
+                var CANVAS_WIDTH = 800;
+                var CANVAS_HEIGHT = 640;
+
+                var gameSpeed = 600;
+                var level = 1;
+
+                var BOARD_WIDTH = 10;
+                var BOARD_HEIGHT = 24;
+
+                var UNIT = 25;
+
+                var BOARD_X0 = CANVAS_WIDTH/2-BOARD_WIDTH/2*UNIT;
+                var BOARD_Y0 = CANVAS_HEIGHT/2-BOARD_HEIGHT/2*UNIT;
+
+                var board = [];
+
+                var START_X = 5;
+                var START_Y = 0;
+
+                var gameOver = false;
+                var score = 0;
+                var lines = 1;
+                var nextPiece = 2;
+
+                var img = new Image();
+                img.src = "block.png";
+
+                var tetromino_img = new Image();
+                var logo_img = new Image();
+                logo_img.src = "tetris.png";
+
+                var theme = new Audio("theme01.ogg");
+                theme.loop = true;
+
+                var line_audio = new Audio("line.wav");
+                var tetris_audio = new Audio("tetris.wav");
+                var move_audio = new Audio("move.wav");
+
+                //////////////////////// IMAGES
+
+
+
+                /////////////////////// TETROMINOS
+
+
+                var TETROMINO_Z = [
+                                  [[1,1,0],[0,1,1],[0,0,0]],
+                                  [[0,0,1],[0,1,1],[0,1,0]],
+                                  [[0,0,0],[1,1,0],[0,1,1]],
+                                  [[0,1,0],[1,1,0],[1,0,0]]
+                                  ];
+
+                var TETROMINO_S = [
+                                  [[0,1,1],[1,1,0],[0,0,0]],
+                                  [[1,0,0],[1,1,0],[0,1,0]],
+                                  [[0,0,0],[0,1,1],[1,1,0]],
+                                  [[0,1,0],[0,1,1],[0,0,1]]
+                                  ];
+
+                var TETROMINO_O = [
+                                  [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+                                  [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+                                  [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]],
+                                  [[1,1,0,0],[1,1,0,0],[0,0,0,0],[0,0,0,0]]
+                                  ];
+
+                var TETROMINO_I = [
+                                  [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]],
+                                  [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+                                  [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
+                                  [[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]]
+                                  ];
+
+                var TETROMINO_T = [
+                                  [[0,0,0,0],[1,1,1,0],[0,1,0,0],[0,0,0,0]],
+                                  [[0,1,0,0],[1,1,0,0],[0,1,0,0],[0,0,0,0]],
+                                  [[0,1,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+                                  [[0,1,0,0],[0,1,1,0],[0,1,0,0],[0,0,0,0]]
+                                  ];
+
+                var TETROMINO_J = [
+                                  [[0,1,0,0],[0,1,0,0],[1,1,0,0],[0,0,0,0]],
+                                  [[1,0,0,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]],
+                                  [[0,1,1,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]],
+                                  [[0,0,0,0],[1,1,1,0],[0,0,1,0],[0,0,0,0]]
+                                  ];
+
+                var TETROMINO_L = [
+                                  [[0,1,0,0],[0,1,0,0],[0,1,1,0],[0,0,0,0]],
+                                  [[0,0,0,0],[1,1,1,0],[1,0,0,0],[0,0,0,0]],
+                                  [[1,1,0,0],[0,1,0,0],[0,1,0,0],[0,0,0,0]],
+                                  [[0,0,1,0],[1,1,1,0],[0,0,0,0],[0,0,0,0]]
+                                  ];
+
+                ///////////////////////
+
+                var PIECES = [TETROMINO_I,TETROMINO_Z,TETROMINO_S,TETROMINO_O,
+                              TETROMINO_T,TETROMINO_J,TETROMINO_L];
+
+                ///////////////////////
+
+                var c = document.getElementById("Canvas");
+                var canvas = c.getContext("2d");
+
+                canvas.fillStyle = '#000000';
+                canvas.font = "20px Courier";
+
+                ////////////////////////////////////////////
+                ////////////////////////////////////////////
+
+                SetupMap();
+
+
+                var promise = theme.play();
+
+                if(promise !== undefined)
+                {
+                  promise.catch(() => {theme.play();})
+                }
+
+                //var dialog = showTemplateDialog();
+
+                var piece = new Piece(TETROMINO_I);
+
+                restartGame();
+
+
+                var dropStart = Date.now();
+
+
+                function play()
+                {
+
+                  var now = Date.now();
+                  var delta = now - dropStart;
+                  if(delta > gameSpeed)
+                  {
+                    if (!gameOver)
+                    {
+                      drawNextPiece();
+                      piece.moveDown();
+
+
+                      dropStart = Date.now();
+                    }
+                  }
+                  if(!gameOver)
+                  requestAnimationFrame(play);
+                   if (gameOver)
+                  {
+                    showNameInsert();
+                    //restartGame();
+                  }
+
+
+                }
+
+                play();
+
+
+                ///////////////////////////////////////////
+                ///////////////////////////////// FUNCTIONS
+
+                function setGameSpeed()
+                {
+                  gameSpeed = 0.5*1000/level*1.2;
+                }
+
+                function InicialiseBoard()
+                {
+                  for (var i = 0; i < BOARD_WIDTH; i++)
+                  {
+                    board[i] = [];
+
+                    for (var j = 0; j < BOARD_HEIGHT; j++)
+                    {
+                      board[i][j] = 0;
+                    }
+                  }
+                }
+
+                function clearBoard()
+                {
+                  for (var i = 0; i < BOARD_WIDTH; i++)
+                  {
+                    for (var j = 0; j < BOARD_HEIGHT; j++)
+                    {
+                      canvas.lineWidth = 0.1;
+                      canvas.fillStyle = '#000000';
+                      canvas.fillRect(BOARD_X0+i*UNIT,BOARD_Y0+j*UNIT, UNIT, UNIT)
+                      canvas.strokeRect(BOARD_X0+i*UNIT,BOARD_Y0+j*UNIT, UNIT, UNIT);
+                    }
+                  }
+                }
+
+                function drawBoard()
+                {
+                  for (var i = 0; i < BOARD_WIDTH; i++)
+                  {
+                    for (var j = 0; j < BOARD_HEIGHT; j++)
+                    {
+                      if(board[i][j])
+                      {
+                        canvas.lineWidth = 0.1;
+                        canvas.fillStyle = '#ffffff';
+                        canvas.drawImage(img,BOARD_X0+i*UNIT,BOARD_Y0+j*UNIT)
+                        //canvas.strokeRect(BOARD_X0+i*UNIT,BOARD_Y0+j*UNIT, UNIT, UNIT);
+                      }
+                      else if (!board[i][j])
+                      {
+                        canvas.lineWidth = 0.1;
+                        canvas.fillStyle = '#000000';
+                        canvas.fillRect(BOARD_X0+i*UNIT,BOARD_Y0+j*UNIT,UNIT,UNIT);
+                        canvas.strokeRect(BOARD_X0+i*UNIT,BOARD_Y0+j*UNIT, UNIT, UNIT);
+                      }
+
+                    }
+                  }
+                }
+
+                function setLevel()
+                {
+                  if (lines >= level*10)
+                  {
+
+                    if(level % 10 == 0)
+                    level = 10;
+                    else {
+                      level = level % 10;
+                      level=level + 1;
+                    }
+
+
+
+
+
+
+
+                  }
+                  setGameSpeed();
+                }
+
+                function returnGameSpeed()
+                {
+                  console.log(gameSpeed);
+                  return gameSpeed;
+                }
+
+                function SetupMap()
+                {
+                  canvas.fillStyle = '#505050';
+                  canvas.fillRect(0,0, 800,640);
+                  canvas.fillStyle = '#000000';
+                  canvas.fillRect(BOARD_X0,BOARD_Y0,
+                    BOARD_WIDTH*UNIT,BOARD_HEIGHT*UNIT);
+
+                  canvas.strokeStyle = "#ffffff";
+                  canvas.lineWidth = 3;
+                  canvas.strokeRect(BOARD_X0-3,BOARD_Y0-3,
+                    BOARD_WIDTH*UNIT+6,BOARD_HEIGHT*UNIT+6);
+
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 50, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 50-3, 100+6,50+6);
+
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText("Score:", CANVAS_WIDTH/2 + 200,40);
+                  canvas.fillText("Next:", CANVAS_WIDTH/2 + 200,125);
+                  canvas.fillText(score, CANVAS_WIDTH/2 +230, 80);
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 135, 120,120);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 135-3, 120+6,120+6);
+
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText("Lines:", CANVAS_WIDTH/2 + 200,280);
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 290, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 290-3, 100+6,50+6);
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText("0", CANVAS_WIDTH/2 + 240,318);
+
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText("Level:", CANVAS_WIDTH/2 + 200,365);
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 380, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 380-3, 100+6,50+6);
+                  var level_show = level;
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText(level_show, CANVAS_WIDTH/2 + 200+40,415);
+
+
+
+                  logo_img.onload = function()
+                  {
+                    canvas.drawImage(logo_img, 30,-20);
+                  }
+
+                }
+
+                function newPiece()
+                {
+                  var randomNumber = nextPiece;
+                  nextPiece = Math.floor(Math.random()*PIECES.length)
+                  drawNextPiece();
+                  var src = randomNumber + ".png";
+                  tetromino_img.src = src;
+                  return new Piece(PIECES[randomNumber]);
+                }
+
+                function drawScore()
+                {
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 50, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 50-3, 100+6,50+6);
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText(score, CANVAS_WIDTH/2 +230, 80);
+                }
+
+                function drawLevel()
+                {
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 380, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 380-3, 100+6,50+6);
+                  var level_show = level;
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText(level_show, CANVAS_WIDTH/2 + 200+40,415);
+                }
+
+                function drawLines()
+                {
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 290, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 290-3, 100+6,50+6);
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText(lines-1, CANVAS_WIDTH/2 + 240,318);
+                }
+
+                function drawNextPiece()
+                {
+                  //alert(nextPiece);
+                  next = new Piece(PIECES[nextPiece]);
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 135, 120,120);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 135-3, 120+6,120+6);
+
+                  for (var i = 0; i < next.activeTetromino.length; i++)
+                  {
+                    for (var j = 0; j < next.activeTetromino.length; j++)
+                    {
+                      if (next.activeTetromino[i][j])
+                      {
+                        //canvas.fillStyle = this.color;
+                        canvas.drawImage(img,CANVAS_WIDTH/2+210+i*UNIT,145+j*UNIT);
+                      }
+                    }
+                  }
+                }
+
+                function restartGame()
+                {
+                  lines = 1;
+                  score = 0;
+                  gameOver = false;
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText("0", CANVAS_WIDTH/2 + 240,318);
+                  canvas.fillStyle = "#000000";
+                  canvas.fillRect(CANVAS_WIDTH/2 + 200, 380, 100,50);
+                  canvas.strokeRect(CANVAS_WIDTH/2 + 200-3, 380-3, 100+6,50+6);
+                  canvas.fillStyle = "#ffffff";
+                  canvas.fillText(level, CANVAS_WIDTH/2 + 200+40,415);
+                  InicialiseBoard();
+                  clearBoard();
+                  //var piece = new Piece(TETROMINO_I);
+                  piece = newPiece();
+
+                  //play();
+                }
+                ////////////////////////////////////// CLASS
+
+                function Piece(tetromino)
+                {
+                  this.tetromino = tetromino;
+
+                  this.tetrominoN = 2;
+                  this.activeTetromino = this.tetromino[this.tetrominoN];
+
+
+                  this.x = START_X;
+                  this.y = START_Y;
+                }
+
+                Piece.prototype.drawPiece = function()
+                {
+                    for (var i = 0; i < this.activeTetromino.length; i++)
+                    {
+                      for (var j = 0; j < this.activeTetromino.length; j++)
+                      {
+                        if (this.activeTetromino[i][j])
+                        {
+                          //canvas.fillStyle = this.color;
+                          canvas.drawImage(tetromino_img,i*UNIT+this.x*UNIT+BOARD_X0,
+                            j*UNIT+this.y*UNIT+BOARD_Y0);
+                        }
+                      }
+                    }
+                }
+
+                Piece.prototype.unDrawPiece = function()
+                {
+                    for (var i = 0; i < this.activeTetromino.length; i++)
+                    {
+                      for (var j = 0; j < this.activeTetromino.length; j++)
+                      {
+                        if (this.activeTetromino[i][j])
+                        {
+                          canvas.lineWidth = 0.1;
+                          canvas.fillStyle = '#000000';
+                          canvas.fillRect(i*UNIT+this.x*UNIT+BOARD_X0,
+                            j*UNIT+this.y*UNIT+BOARD_Y0,UNIT, UNIT)
+                          canvas.strokeRect(i*UNIT+this.x*UNIT+BOARD_X0,
+                            j*UNIT+this.y*UNIT+BOARD_Y0,UNIT, UNIT);
+                        }
+                      }
+                    }
+                }
+
+                Piece.prototype.moveDown = function()
+                {
+                  if (!this.collision(0,1,this.activeTetromino))
+                  {
+                    this.unDrawPiece()
+                    this.y+=1;
+                    this.drawPiece();
+                  }
+                  else
+                  {
+                    this.lock();
+                    //removeRow();
+                    //drawBoard();
+                    piece = newPiece();
+
+
+                  }
+                }
+
+
+                Piece.prototype.moveRight = function()
+                {
+                  if (!this.collision(1,0,this.activeTetromino))
+                  {
+                    this.unDrawPiece()
+                    this.x+=1;
+                    this.drawPiece();
+                    move_audio.play();
+                  }
+                }
+
+                Piece.prototype.moveLeft = function()
+                {
+                  if(!this.collision(-1,0,this.activeTetromino))
+                  {
+                    this.unDrawPiece()
+                    this.x-=1;
+                    this.drawPiece();
+                    move_audio.play();
+                  }
+                }
+
+                Piece.prototype.collision = function(x,y,piece)
+                {
+                  for (var i = 0; i < piece.length; i++)
+                  {
+                    for (var j = 0; j < piece.length; j++)
+                    {
+                      if (!piece[i][j]) continue;
+
+                      var newX = this.x + i + x;
+                      var newY = this.y + j + y;
+
+                      if (newX < 0 || newX >= BOARD_WIDTH || newY > BOARD_HEIGHT)
+                        return true;
+
+                      if (newY < 0) continue;
+
+                      if (board[newX][newY] != 0) return true;
+                    }
+                  }
+                  return false;
+                }
+
+                Piece.prototype.rotate = function()
+                {
+                  var nextPattern = this.tetromino[(this.tetrominoN+1) % this.tetromino.length];
+
+                  if(!this.collision(0,0,nextPattern))
+                  {
+                    this.unDrawPiece();
+
+                    this.tetrominoN = (this.tetrominoN+1) % this.tetromino.length;
+                    this.activeTetromino = this.tetromino[this.tetrominoN];
+
+                    this.drawPiece();
+                    move_audio.play();
+                  }
+
+                }
+
+                Piece.prototype.lock = function()
+                {
+                  for (var i = 0; i < this.activeTetromino.length; i++)
+                  {
+                    for (var j = 0; j < this.activeTetromino.length; j++)
+                    {
+                      if (!this.activeTetromino[i][j]) continue;
+
+                      if (this.y + i < 1)
+                      {
+                        gameOver = true;
+                        break;
+                      }
+
+                      board[this.x + i][this.y + j] = 1;
+
+                    }
+                  }
+
+                  // remove rows
+
+                  var gap;
+                	var numClears = 0;
+
+                	for (var j = BOARD_HEIGHT-1; j > 0; j--)
+                	{
+                		gap = false;
+
+                		for (var i = 0; i < BOARD_WIDTH; i++)
+                		{
+                			if(board[i][j]==0)
+                			{
+                				gap = true;
+                    		break;
+                			}
+                		}
+
+                		if (!gap)
+                		{
+                			deleteRow(j);
+                			j+=1;
+                			numClears+=1;
+                		}
+                	}
+
+                  drawBoard();
+
+                  switch(numClears)
+                  {
+                    case 1: score+= (level/2)*50; line_audio.play(); lines+=1;  break;
+                    case 2: score+= (level/2)*100; line_audio.play(); lines+=2; break;
+                    case 3: score+= (level/2)*150; line_audio.play(); lines+=3; break;
+                    case 4: score+= (level/2)*250; tetris_audio.play(); lines+=4; break;
+                  }
+                  drawScore();
+                  drawLines();
+                  drawLevel();
+                  setLevel();
+                  drawNextPiece();
+
+                }
+
+                function deleteRow(row)
+                {
+                  for (var j = row-1; j > 0; j--)
+    		            for (var i = 0; i < BOARD_WIDTH; i++)
+    			             board[i][j+1]=board[i][j];
+
+
+                }
+
+                /////////////////////////// DIALOGS
+
+                var hideDialog = function(id) {
+                  document
+                    .getElementById(id)
+                    .remove();
+
+
+                    restartGame();
+
+
+                };
+
+                function hideNameDialog(id)
+                {
+
+
+                  document
+                    .getElementById(id)
+                    .remove();
+                    gameOver = false;
+
+                    insertLocalhost();
+
+                    restartGame();
+                    play();
+                    level = 0;
+
+
+                }
+
+                var showTemplateDialog = function() {
+                  var dialog = document.getElementById('menu');
+
+                  if (dialog) {
+                    dialog.show();
+                  } else {
+                    ons.createElement('dialog.html', { append: true })
+                      .then(function(dialog) {
+                        dialog.show();
+                      });
+                  }
+                };
+
+                var showTemplateDialogLeaderBoard = function() {
+                  var dialog = document.getElementById('leaderboard');
+
+
+                  if (dialog) {
+                    dialog.show();
+                    updateLeaderBoard();
+                  } else {
+                    ons.createElement('leaderboard.html', { append: true })
+                      .then(function(dialog) {
+                        dialog.show();
+                        updateLeaderBoard();
+                      });
+                  }
+                };
+
+                function showNameInsert()
+                {
+                  var dialog = document.getElementById('insert');
+
+
+                    ons.createElement('insert.html', { append: true })
+                      .then(function(dialog) {
+                        dialog.show();
+                      });
+
+                }
+
+                function setDifficulty(value)
+                {
+                  level = value;
+                  setGameSpeed();
+                  $("#level_label").text(value);
+                }
+
+                var name_localhost;
+                function getName(name)
+                {
+                  name_localhost = name;
+                }
+
+                function insertLocalhost()
+                {
+                  var myDate = new Date();
+                  var myKey = myDate.getTime();
+                  var month = myDate.getMonth()+1;
+
+
+                      var rec = new Object();
+                      rec.name = name_localhost;
+                      rec.score = score;
+                      rec.level = level;
+                      rec.lines = lines;
+                      rec.time = myDate.getDate() + "/" + month + "/" + myDate.getFullYear();
+
+
+                      var myJSON = JSON.stringify(rec);
+                      localStorage.setItem(myKey, myJSON);
+
+                }
+
+                function updateLeaderBoard()
+                {
+                  var arr = [];
+
+                  for(var i = 0; i < localStorage.length; i++)
+                  {
+                    var key = localStorage.key(i);
+
+
+                    var value = JSON.parse(localStorage.getItem(key));
+
+                    //console.log(localStorage.getItem(key).name + " | " + localStorage.getItem(key).score + " | " + localStorage.getItem(key).lines + " | " + localStorage.getItem(key).level + " | " + localStorage.getItem(key).time)
+
+                    arr[i] = value;
+                  }
+
+                  for (var i = 0; i < arr.length ; i++) {
+                    for(var j = 0 ; j < arr.length - i - 1; j++){ // this was missing
+                    if (arr[j].score < arr[j + 1].score) {
+                      // swap
+                      var temp = arr[j];
+                      arr[j] = arr[j+1];
+                      arr[j + 1] = temp;
+                    }
+                   }
+                 }
+
+
+                 if(arr.length > 5)
+                 {
+                    $("#top1").text("Name: " + arr[0].name + " | Score: " + arr[0].score + " | Lines: " + arr[0].lines + " | Level: " + arr[0].level + " | Date: " + arr[0].time);
+                    $("#top2").text("Name: " + arr[1].name + " | Score: " + arr[1].score + " | Lines: " + arr[1].lines + " | Level: " + arr[1].level + " | Date: " + arr[1].time);
+                    $("#top3").text("Name: " + arr[2].name + " | Score: " + arr[2].score + " | Lines: " + arr[2].lines + " | Level: " + arr[2].level + " | Date: " + arr[2].time);
+                    $("#top4").text("Name: " + arr[3].name + " | Score: " + arr[3].score + " | Lines: " + arr[3].lines + " | Level: " + arr[3].level + " | Date: " + arr[3].time);
+                    $("#top5").text("Name: " + arr[4].name + " | Score: " + arr[4].score + " | Lines: " + arr[4].lines + " | Level: " + arr[4].level + " | Date: " + arr[4].time);
+                 }
+                 if(arr.length == 4)
+                 {
+                   $("#top1").text("Name: " + arr[0].name + " | Score: " + arr[0].score + " | Lines: " + arr[0].lines + " | Level: " + arr[0].level + " | Date: " + arr[0].time);
+                   $("#top2").text("Name: " + arr[1].name + " | Score: " + arr[1].score + " | Lines: " + arr[1].lines + " | Level: " + arr[1].level + " | Date: " + arr[1].time);
+                   $("#top3").text("Name: " + arr[2].name + " | Score: " + arr[2].score + " | Lines: " + arr[2].lines + " | Level: " + arr[2].level + " | Date: " + arr[2].time);
+                   $("#top4").text("Name: " + arr[3].name + " | Score: " + arr[3].score + " | Lines: " + arr[3].lines + " | Level: " + arr[3].level + " | Date: " + arr[3].time);
+                 }
+                 if(arr.length == 3)
+                 {
+                   $("#top1").text("Name: " + arr[0].name + " | Score: " + arr[0].score + " | Lines: " + arr[0].lines + " | Level: " + arr[0].level + " | Date: " + arr[0].time);
+                   $("#top2").text("Name: " + arr[1].name + " | Score: " + arr[1].score + " | Lines: " + arr[1].lines + " | Level: " + arr[1].level + " | Date: " + arr[1].time);
+                   $("#top3").text("Name: " + arr[2].name + " | Score: " + arr[2].score + " | Lines: " + arr[2].lines + " | Level: " + arr[2].level + " | Date: " + arr[2].time);
+                 }
+                 if(arr.length == 2)
+                 {
+                   $("#top1").text("Name: " + arr[0].name + " | Score: " + arr[0].score + " | Lines: " + arr[0].lines + " | Level: " + arr[0].level + " | Date: " + arr[0].time);
+                   $("#top2").text("Name: " + arr[1].name + " | Score: " + arr[1].score + " | Lines: " + arr[1].lines + " | Level: " + arr[1].level + " | Date: " + arr[1].time);
+                 }
+                 if(arr.lenght == 1)
+                 {
+                   $("#top1").text("Name: " + arr[0].name + " | Score: " + arr[0].score + " | Lines: " + arr[0].lines + " | Level: " + arr[0].level + " | Date: " + arr[0].time);
+                 }
+
+
+                }
+
+
+
+                </script>
+              </canvas>
+            </div>
+          </div>
+
+
+                <div>
+                  <ons-button style="position: fixed; top: 125px; left: 50px" onclick="showTemplateDialog()">Menu</ons-button>
+                </div>
+
+                <div>
+                  <ons-button style="position: fixed; top: 550px; left: 50px;" onclick="piece.moveLeft()">Left</ons-button>
+                  <ons-button style="position: fixed; top: 550px; left: 200px" onclick="piece.moveRight()">Right</ons-button>
+                  <ons-button style="position: fixed; top: 550px; left: 700px" onclick="piece.moveDown()">Down</ons-button>
+                  <ons-button style="position: fixed; top: 550px; left: 600px" onclick="piece.rotate()">Rotate</ons-button>
+                </div>
+
+                <div>
+              <template id="dialog.html">
+                <ons-dialog id="menu" >
+                <div style="text-align: center; padding: 10px;">
+                    <h2>Tetris Game: TAMZ I Project</h2>
+                    <p>Set Difficulty or see leaderboard</p>
+                    <div class="center">
+                    Difficulty
+                    <p id = "level_label"></p>
+                      <ons-range modifier="material" id="difficulty_slider" style="width: 100%;" value="1" min="1" max="10" step="1" onmousemove="setDifficulty(this.value)"></ons-range>
+                      </div>
+                    <p>
+                    <ons-button onclick="showTemplateDialogLeaderBoard()">LeaderBoard</ons-button>
+                    </p>
+                    <p>
+                    <ons-button onclick="hideDialog('menu')">Close</ons-button>
+                    </p>
+                    </div>
+                </ons-dialog>
+              </template>
+            </div>
+
+            <div>
+          <template id="leaderboard.html">
+            <ons-dialog id="leaderboard" >
+            <div style="text-align: center; padding: 10px;">
+                <h2>LeaderBoard</h2>
+                <p>Top 5:</p>
+
+                <ons-list-item><p id="top1"> </p></ons-list-item>
+                <ons-list-item><p id="top2"> </p></ons-list-item>
+                <ons-list-item><p id="top3"> </p></ons-list-item>
+                <ons-list-item><p id="top4"> </p></ons-list-item>
+                <ons-list-item><p id="top5"> </p></ons-list-item>
+
+                <p>
+                <ons-button onclick="hideDialog('leaderboard')">Close</ons-button>
+                </p>
+                </div>
+            </ons-dialog>
+          </template>
+        </div>
+
+        <div>
+      <template id="insert.html">
+        <ons-dialog id="insert" >
+        <div style="text-align: center; padding: 10px;">
+            <h2>Insert Name</h2>
+
+            <p>
+              <ons-input id="name" modifier="underbar" placeholder="Name" float onchange="getName(this.value)"></ons-input>
+            </p>
+
+            <p>
+            <ons-button onclick="hideNameDialog('insert')">Close</ons-button>
+            </p>
+            </div>
+        </ons-dialog>
+      </template>
+    </div>
+
+
+          </ons-page>
+    </body>
+</html>
